@@ -1,8 +1,10 @@
 ---
 title: "Topographic Change caused by People"
-author: "Matthew Ross"
+author: "Matthew Ross updated by Karin Emanuelson"
 date: "9/23/2019"
 output: html_document
+editor_options: 
+  chunk_output_type: console
 ---
 
 
@@ -14,6 +16,7 @@ library(sf)  #Spatial datasets
 library(mapview) #interactive mapping
 library(raster) #Raster analysis
 library(elevatr) #National Elevation Dataset downloader. 
+library(ggthemes)
 
 knitr::opts_chunk$set(echo = TRUE)
 ```
@@ -171,8 +174,13 @@ plot(dem_diff)
 You may want to check out the command maxValue and minValue
 
 ```{r}
+# maximum elevation change
+maxValue(dem_diff)
 
-#YOUR CODE HERE
+# minimum elevation change
+minValue(dem_diff)
+
+# The greatest elevation change caused by mining  was a decrease of 73 meters 
 ```
 
 
@@ -180,7 +188,7 @@ You may want to check out the command maxValue and minValue
 
 The national elevation dataset (NED) and the Shuttle 
 Radar Topography Mission are extremely different ways to
-estimate elevatino. NED is derived from thousands of 
+estimate elevation. NED is derived from thousands of 
 compiled elevation datasets that can be collected on the
 ground, from LiDAR or other ways, while SRTM is collected
 with radar from space. As a result, we naturally expect
@@ -193,8 +201,7 @@ elevation change?
 
 ```{r}
 
-#Your code here
-
+az_min_buff<-sf::st_buffer(az_mine, 5000)
 
 ```
 
@@ -206,6 +213,11 @@ same projection as the dem_diff raster dataset
 hint: you may want to explore st_crs to help you here
 
 ```{r}
+# Check projection of demdiff
+st_crs(dem_diff)
+
+#transform projection of buffered az_mine using code determined above
+az_mine_buff_trans<-st_transform(az_min_buff, crs = 4326)
 
 ```
 
@@ -217,13 +229,21 @@ hint: look at the mask command and try to understand what
 the inverse option does
 
 ```{r}
-#Your code here
+#look at only the dem diff outside of the mine area
+dem_diff_masked<-mask(dem_diff, az_mine_buff_trans, inverse = TRUE)
+
+# check to make sure it worked
+# mapview(dem_diff_masked)
+
 ```
 
 
 ### 2d) Use the summary command to look at the summary of
 differences between these two DEMs in areas where there has
 been no mining
+```{r}
+summary(dem_diff_masked)
+```
 
 
 ## 3) What does the shape of the "error" distribution look like
@@ -234,12 +254,44 @@ To look at distributional changes, we may want to convert this
 raster dataset back into a data.frame or tibble type shape so 
 that we can take advantage of ggplots plotting capabilities and 
 make a plot of the two dems.
+```{r}
+# make into dataframe
+dem_diff_masked_df<-as.data.frame(dem_diff_masked)
+dem_diff_df<-as.data.frame(dem_diff)
+
+# Graph (DEM- SRTM) areas that have been mined
+ggplot(dem_diff_df, aes(dem_diff_df$layer))+
+  geom_histogram(binwidth = 5)
+# majority of the diferences are centered around 0 then some greater differences are seen to have a -40 meter difference.
+
+# Graph areas that have not been mined
+ggplot(dem_diff_masked_df, aes(dem_diff_masked_df$layer))+
+  geom_histogram(binwidth = 5)
+# Tells that the SRTM is overestimating by error in the dem difference centered around 0
+
+# Comparing the two graphs I would only trust a dem diff greater than -20 m anything less than that could be due to error.
+```
+
 
 ### 3a) Mask the raster dem_diff dataset to the exact outlines of the
 USGS az_mine dataset
 
 ```{r}
 
+# Check projection of demdiff
+st_crs(dem_diff)
+
+#transform projection of buffered az_mine using code determined above
+az_mine_trans<-st_transform(az_mine, crs = 4326)
+
+#look at only the dem diff outside of the mine area
+dem_diff_masked_az<-mask(dem_diff, az_mine_trans, inverse = FALSE)
+
+#Make Dataframe
+dem_diff_masked_az_df<-as.data.frame(dem_diff_masked_az)
+
+# #View to check
+# mapview(dem_diff_masked_az)
 ```
 
 
@@ -248,8 +300,11 @@ values from both the unmined and mined regions of your rasters.
 Label these vectors as `unmined_dem` and `mined_dem`. 
 
 ```{r}
+#Values for the unmined regions
+unmined_dem<-getValues(dem_diff_masked)
 
-
+#Values for the mined regions
+mined_dem<-getValues(dem_diff_masked_az)
 
 ```
 
@@ -264,7 +319,12 @@ unmined_type <- rep('unmined',length(unmined_dem))
 mined_type <- rep('mined',length(mined_dem))
 mined_table <- tibble(dem_values = c(unmined_dem,mined_dem),
                       type = c(unmined_type,mined_type)) 
-                      
+
+ggplot(data=mined_table, aes(x=dem_values, color=type))+
+  geom_density()+
+  theme_few() + 
+  scale_color_few() +
+  theme(legend.position=c(0.2,0.8))
                     
 ```
 
