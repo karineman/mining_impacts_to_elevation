@@ -180,9 +180,8 @@ maxValue(dem_diff)
 # minimum elevation change
 minValue(dem_diff)
 
-# The greatest elevation change caused by mining  was a decrease of 73 meters 
 ```
-
+The greatest elevation change caused by mining  was a decrease of 73 meters 
 
 ## 2) What is the background elevation "error" between NED and SRTM? 
 
@@ -214,7 +213,7 @@ hint: you may want to explore st_crs to help you here
 
 ```{r}
 # Check projection of demdiff
-st_crs(dem_diff)
+# st_crs(dem_diff)
 
 #transform projection of buffered az_mine using code determined above
 az_mine_buff_trans<-st_transform(az_min_buff, crs = 4326)
@@ -254,7 +253,7 @@ To look at distributional changes, we may want to convert this
 raster dataset back into a data.frame or tibble type shape so 
 that we can take advantage of ggplots plotting capabilities and 
 make a plot of the two dems.
-```{r}
+```{r, warnings = FALSE}
 # make into dataframe
 dem_diff_masked_df<-as.data.frame(dem_diff_masked)
 dem_diff_df<-as.data.frame(dem_diff)
