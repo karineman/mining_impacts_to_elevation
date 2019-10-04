@@ -17,6 +17,7 @@ library(mapview) #interactive mapping
 library(raster) #Raster analysis
 library(elevatr) #National Elevation Dataset downloader. 
 library(rayshader) #3D plotting package
+
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
@@ -99,6 +100,7 @@ az_matrix %>%
   add_shadow(ray_shade(az_matrix,zscale=2),0.5) %>%
   add_shadow(ambient_shade(az_matrix)) %>%
   plot_3d(az_matrix,zscale=10,fov = 0,theta=135,zoom=0.75)
+render_snapshot(clear = TRUE)
 ```
 
 
@@ -176,7 +178,7 @@ az_before_matrix %>%
   add_shadow(ray_shade(az_before_matrix,zscale=2),0.5) %>%
   add_shadow(ambient_shade(az_before_matrix)) %>%
   plot_3d(az_before_matrix,zscale=10,fov = 0,theta=135,zoom=0.75)
-
+render_snapshot(clear = TRUE)
 ```
 
 
@@ -193,5 +195,5 @@ az_after_matrix %>%
   add_shadow(ray_shade(az_after_matrix,zscale=2),0.5) %>%
   add_shadow(ambient_shade(az_after_matrix)) %>%
   plot_3d(az_after_matrix,zscale=10,fov = 0,theta=135,zoom=0.75)
-
+render_snapshot(clear = TRUE)
 ```
